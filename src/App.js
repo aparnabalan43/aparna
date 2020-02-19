@@ -1,69 +1,91 @@
 import React from 'react';
+import {Link} from 'react-router-dom';
 import logo from './logo.svg';
 import './App.css';
+import productTile from './components/productTile';
+
+
 
 class App extends React.Component {
-  constructor(props){
+  componentDidMount()
+{ this.loadProducts()
+this.initCart();
+ }
+
+  constructor(props) {
     super(props);
-    this.state={
-      firstState:'hello world',
-      cartCount:0
+    this.state = {
+      cartcount: 0,
+      alertOncartcount: 10,
+      products: [],
+      cart: []
     }
   }
+  initCart()
+  { let myCart = localStorage.getItem('cart')
+myCart = JSON.parse(myCart)
+this.setState({
+  cart: myCart || []
+})
+}
 
-  componentDidMount() {
-    this.setState({
-      firstState:'welcome to our shop'
+viewCart()
+{
+  console.log(this.state.cart)
+}
+  addToCart(product)
+  {
+    const newCart = this.state.cart;
+    newCart.push(product);
+   localStorage.setItem('cart',JSON.stringify(newCart))
+   this.setState({
+      cart: newCart
     })
   }
   
-  componentDidUpdate(prevPros,prevState){
-  console.log(this.state)
-  }
-  addCount()
-    {
-      const newCount=this.state.cartCount +1;
-      this.setState({
-        cartCount:newCount
-      })
+
+  loadProducts() {
+    let url = 'https://my-json-server.typicode.com/shiyasvp92/sample_products/products'
+    let options = {
+      method: 'GET'
     }
-  
+
+    fetch(url, options)
+      .then((response) => {
+        return response.json()
+      })
+      .then((data) => {
+        console.log(data)
+        this.setState({
+          products: data
+        })
+      })
+      .catch((error) => {
+        console.error(error)
+      })
+  }
   render() {
+    const productsList = this.state.products.map((product) => {
+      return productTile(this.addToCart.bind(this), product)
+    })
+
+    
     return (
       <div>
         <nav className="navbar navbar-expand-lg navbar-light bg-light d-flex justify-content-between">
           <a className="navbar-brand" href="#">Navbar</a>
-          <button className="right" type="button">
-            Cart
-            {this.state.cartCount}
+          <Link to="/cart">
+          <button  className="right" type="button" onClick={()=>{this.viewCart();}}>
+            Cart({this.state.cart.length})
         </button>
+        </Link>
         </nav>
         <div className="container">
           <div className="row">
             <h2>Products</h2>
-            {this.state.firststate}
           </div>
           <div className="row">
-            <div className="col-md-4 col-lg-3 col-sm-12">
-              <div className="card mb-3" style={{"maxWidth": "540px", "color": "red"}}>
-                <div className="row no-gutters">
-                  <div className="col-md-4">
-                    <img src="https://via.placeholder.com/150" className="card-img" width="100%" height="100%" />
-                  </div>
-                  <div className="col-md-8">
-                    <div className="card-body">
-                      <h5 className="card-title" id="#first-title">Product title</h5>
-                      <div>
-                        <button className="btn btn-primary add-btn" onClick={() =>{
-                          this.addCount()
-                        }}>add
-                      </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            {productsList}
           </div>
           <div className="row d-flex justify-content-end">
             <button className="btn btn-primary" id="checkout-btn">Checkout</button>
